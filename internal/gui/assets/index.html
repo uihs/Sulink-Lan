@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sulink Lan</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230EA5A4'/%3E%3Cpath d='M12 20l8-8M11 11a5 5 0 0 0 0 7l2 2M21 21a5 5 0 0 0 0-7l-2-2' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --brand:#0EA5A4; --brand-dark:#0B8180; --brand-press:#096E6D;
+  --brand-light:#E6F7F7; --brand-subtle:#F3FBFB;
+  --success:#16A34A; --warning:#F59E0B; --danger:#DC2626; --danger-dark:#B91C1C;
+  --bg-page:#F7F9FA; --bg-card:#FFFFFF; --bg-hover:#F1F5F5;
+  --border:#E5E9EB; --border-strong:#CFD6D9;
+  --text:#1A2226; --text-sub:#5A676D; --text-weak:#8B979D;
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-full:999px;
+  --sh-xs:0 1px 2px rgba(16,24,32,.04);
+  --sh-sm:0 2px 8px rgba(16,24,32,.06);
+  --sh-md:0 8px 24px rgba(16,24,32,.10);
+  --sh-focus:0 0 0 3px rgba(14,165,164,.18);
+  --font-ui:"Microsoft YaHei UI","Segoe UI","PingFang SC","Noto Sans CJK SC",sans-serif;
+  --font-mono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--font-ui);background:var(--bg-page);color:var(--text);
+  font-size:13px;line-height:20px;-webkit-font-smoothing:antialiased;
+  user-select:none;
+}
+/* ============ 主布局 ============ */
+.body{display:flex;height:100vh;min-height:0}
+.sidebar{
+  width:172px;flex:none;background:#fff;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:13px 10px 10px;min-height:0;
+}
+.brand{display:flex;align-items:center;gap:8px;padding:0 6px 12px;flex:none}
+.brand-mark{
+  width:24px;height:24px;border-radius:7px;flex:none;
+  background:linear-gradient(135deg,var(--brand),#22C9C6);
+  display:flex;align-items:center;justify-content:center;
+}
+.brand-mark svg{width:14px;height:14px}
+.brand-name{font-size:14px;font-weight:600;letter-spacing:-.2px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-item{
+  display:flex;align-items:center;gap:8px;height:34px;padding:0 9px;
+  border-radius:var(--r-md);color:var(--text-sub);cursor:pointer;
+  font-size:13px;transition:background .12s,color .12s;border:none;background:none;
+  font-family:inherit;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--bg-hover)}
+.nav-item.active{background:var(--brand-light);color:var(--brand-dark);font-weight:600}
+.nav-item svg{width:16px;height:16px;flex:none}
+.nav-item:focus-visible{outline:none;box-shadow:var(--sh-focus)}
+.sidebar-foot{margin-top:auto;padding:10px 8px 2px;border-top:1px solid var(--border);flex:none}
+.mini-status{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-sub)}
+.dot{width:8px;height:8px;border-radius:var(--r-full);flex:none}
+.dot.gray{background:var(--text-weak)}
+.dot.green{background:var(--success)}
+.dot.amber{background:var(--warning)}
+.dot.red{background:var(--danger)}
+.dot.brand{background:var(--brand)}
+.dot.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.85)}}
+@media (prefers-reduced-motion:reduce){.dot.pulse{animation:none}.spinner{animation:none}}
+/* 内容区 */
+.content{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.topbar{
+  height:52px;flex:none;display:flex;align-items:center;gap:10px;
+  padding:0 18px;border-bottom:1px solid var(--border);
+}
+.page-title{font-size:17px;font-weight:600;line-height:24px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border-radius:var(--r-full);font-size:11.5px;font-weight:500;line-height:15px;
+  white-space:nowrap;
+}
+.pill.gray{background:rgba(139,151,157,.12);color:#4A565B}
+.pill.green{background:rgba(22,163,74,.12);color:#116B37}
+.pill.amber{background:rgba(245,158,11,.14);color:#8A5A05}
+.pill.red{background:rgba(220,38,38,.10);color:#A61B1B}
+.pill.brand{background:rgba(14,165,164,.12);color:var(--brand-dark)}
+.pill .dot{width:8px;height:8px}
+/* ============ 按钮 ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:34px;padding:0 14px;border-radius:var(--r-md);font-size:13px;
+  font-weight:500;font-family:inherit;cursor:pointer;border:1px solid transparent;
+  transition:background .12s,border-color .12s,box-shadow .12s;white-space:nowrap;
+}
+.btn:focus-visible{outline:none;box-shadow:var(--sh-focus)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-dark)}
+.btn-primary:active{background:var(--brand-press)}
+.btn-secondary{background:#fff;border-color:var(--border-strong);color:var(--text)}
+.btn-secondary:hover{background:var(--bg-hover)}
+.btn-secondary:active{background:#E5E9EB}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:var(--danger-dark)}
+.btn-ghost{
+  height:28px;padding:0 10px;background:transparent;color:var(--text-sub);
+  border-radius:var(--r-md);font-size:13px;
+}
+.btn-ghost:hover{background:var(--bg-hover)}
+.btn-ghost:active{background:#E5E9EB}
+.btn:disabled{background:var(--border-strong);color:var(--text-weak);cursor:not-allowed;border-color:transparent}
+.btn-sm{height:28px;padding:0 10px;font-size:12.5px}
+.spinner{
+  width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:var(--r-full);animation:spin .7s linear infinite;flex:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ============ 滚动区 ============ */
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:15px 18px 20px}
+.scroll::-webkit-scrollbar{width:10px}
+.scroll::-webkit-scrollbar-thumb{background:#D5DBDE;border-radius:var(--r-full);border:3px solid var(--bg-page)}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--sh-xs);margin-bottom:14px;
+}
+.card-head{display:flex;align-items:center;gap:8px;padding:13px 16px 0}
+.card-title{font-size:14.5px;font-weight:600;line-height:22px}
+.card-body{padding:13px 16px 16px}
+/* ============ 地址卡 ============ */
+.address-card{
+  background:var(--brand-subtle);border:1px solid rgba(14,165,164,.28);
+  border-radius:var(--r-lg);padding:15px;margin-bottom:14px;
+}
+.addr-box{
+  display:flex;align-items:center;gap:10px;background:#fff;
+  border:1px solid rgba(14,165,164,.28);border-radius:var(--r-md);padding:11px 13px;
+}
+.addr-value{
+  font-family:var(--font-mono);font-size:23px;font-weight:600;line-height:30px;
+  letter-spacing:-.5px;color:var(--text);flex:1;user-select:all;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.addr-placeholder{
+  border:1.5px dashed var(--border-strong);border-radius:var(--r-md);
+  padding:20px 14px;text-align:center;color:var(--text-weak);font-size:12.5px;
+  background:rgba(255,255,255,.5);
+}
+/* ============ 日志 ============ */
+.log-box{
+  background:#FBFCFC;border:1px solid var(--border);border-radius:var(--r-md);
+  padding:8px 10px;height:150px;overflow-y:auto;
+  font-family:var(--font-mono);font-size:11.5px;line-height:18px;color:var(--text-sub);
+  user-select:text;white-space:pre-wrap;word-break:break-all;
+}
+.log-box:empty::before{content:"";display:block;height:1px}
+.log-line{display:block}
+/* ============ 服务端公告（管理页下发） ============ */
+.notice{
+  display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;
+  background:var(--brand-subtle);border:1px solid rgba(14,165,164,.28);
+  border-left:3px solid var(--brand);border-radius:var(--r-md);padding:10px 12px;
+}
+.notice[hidden]{display:none}
+.notice svg{width:18px;height:18px;flex:none;color:var(--brand-dark);margin-top:2px}
+.notice-body{flex:1;min-width:0}
+.notice-title{font-size:12px;font-weight:600;color:var(--brand-dark);margin-bottom:3px}
+.notice-text{
+  font-size:12.5px;line-height:19px;color:var(--text);white-space:pre-wrap;
+  word-break:break-word;user-select:text;
+}
+/* ============ 徽标 ============ */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;
+  padding:3px 8px;border-radius:var(--r-full);line-height:14px;
+}
+.badge.green{background:rgba(22,163,74,.12);color:#116B37}
+.badge.amber{background:rgba(245,158,11,.14);color:#8A5A05}
+.badge.gray{background:var(--bg-hover);color:var(--text-sub)}
+.badge.red{background:rgba(220,38,38,.10);color:#A61B1B}
+/* ============ 穿透规则 ============ */
+.rule-list{display:flex;flex-direction:column}
+.rule-row{display:flex;align-items:center;gap:11px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background .12s}
+.rule-row:last-child{border-bottom:none}
+.rule-row:hover{background:var(--bg-hover)}
+.rule-row.off{opacity:.5}
+.rule-avatar{
+  width:30px;height:30px;border-radius:9px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:#fff;
+}
+.rule-info{flex:1;min-width:0}
+.rule-title{
+  font-family:var(--font-mono);font-size:12.5px;font-weight:500;line-height:19px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.rule-desc{
+  font-size:12px;color:var(--text-weak);line-height:18px;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.rule-meta{display:flex;align-items:center;gap:6px;flex:none}
+.empty-box{
+  padding:26px 16px;text-align:center;color:var(--text-weak);font-size:12.5px;
+  border-bottom:none;
+}
+/* 命中区的提示条：存在感低但可被看见 */
+.hint-bar{
+  display:flex;align-items:flex-start;gap:8px;padding:10px 12px;margin:0 16px 12px;
+  background:var(--brand-subtle);border:1px solid #CFECEC;border-radius:var(--r-sm);
+  font-size:12px;line-height:18px;color:#0B6A69;
+}
+.hint-bar svg{flex:none;margin-top:2px}
+.hint-bar code{
+  font-family:var(--font-mono);background:rgba(14,165,164,.10);
+  padding:1px 5px;border-radius:4px;font-size:12px;
+}
+/* 弹窗内两列布局 */
+.modal-grid{display:flex;gap:12px}
+.modal-grid > *{flex:1;min-width:0}
+.modal-arrow{
+  display:flex;align-items:center;justify-content:center;flex:none;
+  width:20px;color:var(--text-weak);padding-top:26px;
+}
+/* ============ 表单 ============ */
+.form-row{margin-bottom:13px}
+.form-label{font-size:12.5px;font-weight:500;margin-bottom:5px;display:block;color:var(--text)}
+.input{
+  width:100%;height:34px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+  padding:0 10px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;
+  transition:border-color .12s,box-shadow .12s;user-select:text;
+}
+.input::placeholder{color:var(--text-weak)}
+.input:focus{outline:none;border-color:var(--brand);box-shadow:var(--sh-focus)}
+.input.error{border-color:var(--danger)}
+.input:disabled{background:var(--bg-hover);color:var(--text-weak);cursor:not-allowed}
+.input.mono{font-family:var(--font-mono)}
+.error-text{font-size:12px;color:var(--danger);margin-top:5px;display:flex;align-items:center;gap:5px}
+.input-group{display:flex;gap:8px}
+/* 开关 */
+.switch-row{display:flex;align-items:center;gap:12px;padding:11px 0}
+.switch-row + .switch-row{border-top:1px solid var(--border)}
+.switch-text{flex:1}
+.switch{position:relative;width:38px;height:21px;flex:none;cursor:pointer}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch .track{
+  position:absolute;inset:0;background:var(--border-strong);border-radius:var(--r-full);
+  transition:background .16s;cursor:pointer;
+}
+.switch .knob{
+  position:absolute;top:2px;left:2px;width:17px;height:17px;background:#fff;
+  border-radius:var(--r-full);transition:transform .16s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  pointer-events:none;
+}
+.switch input:checked ~ .track{background:var(--brand)}
+.switch input:checked ~ .knob{transform:translateX(17px)}
+.switch input:focus-visible ~ .track{box-shadow:var(--sh-focus)}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.kv{display:flex;flex-direction:column;gap:2px}
+.kv-k{font-size:11px;color:var(--text-weak);letter-spacing:.2px}
+.kv-v{font-family:var(--font-mono);font-size:12.5px;color:var(--text)}
+/* ============ Toast ============ */
+.toast-wrap{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;gap:10px;z-index:50}
+.toast{
+  display:flex;align-items:center;gap:9px;background:#fff;border-radius:var(--r-md);
+  box-shadow:var(--sh-md);padding:10px 12px;width:290px;font-size:12.5px;
+  border-left:3px solid var(--brand);animation:slideIn .22s ease-out;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.toast.success{border-left-color:var(--success)}
+.toast.warning{border-left-color:var(--warning)}
+.toast.error{border-left-color:var(--danger)}
+.toast svg{flex:none}
+.toast-msg{flex:1;line-height:18px;color:var(--text)}
+/* ============ 弹窗 ============ */
+.overlay{
+  position:fixed;inset:0;background:rgba(16,24,32,.4);display:none;
+  align-items:center;justify-content:center;z-index:60;
+}
+.overlay.show{display:flex}
+.modal{width:400px;background:#fff;border-radius:var(--r-lg);box-shadow:var(--sh-md);animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:16px 16px 0}
+.modal-title{font-size:14.5px;font-weight:600;line-height:22px}
+.modal-body{padding:13px 16px 4px}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:13px 16px 16px}
+.page{display:none}
+.page.active{display:block}
+.rule-flow{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:13px}
+.rule-arrow{color:var(--text-weak)}
+.mono{font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<div class="body">
+  <!-- 侧栏 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 15l6-6M8.5 8.5a4 4 0 0 0 0 5.6l1.4 1.4M15.5 15.5a4 4 0 0 0 0-5.6L14.1 8.5"/>
+          <circle cx="12" cy="12" r="9.5" stroke-width="1.6" opacity=".45"/>
+        </svg>
+      </div>
+      <span class="brand-name">Sulink Lan</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-page="lan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>
+        </svg>
+        网络
+      </button>
+      <button class="nav-item" data-page="forward">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h11a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3H8a3 3 0 0 0-3 3v0a3 3 0 0 0 3 3h9"/>
+          <path d="M18 4l3 3-3 3M6 18l-3 3 3 3" opacity=".55"/>
+        </svg>
+        公网访问
+      </button>
+      <button class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>
+        </svg>
+        设置
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="mini-status">
+        <span class="dot gray" id="miniDot"></span>
+        <span id="miniText">未连接</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 内容区 -->
+  <div class="content">
+    <div class="topbar">
+      <span class="page-title" id="pageTitle">网络</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary" id="connBtn">连接</button>
+      </div>
+    </div>
+
+    <div class="scroll">
+      <!-- 服务端公告（管理页下发）：无公告时整块隐藏，不占位 -->
+      <div class="notice" id="noticeBar" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11v2a1 1 0 0 0 1 1h2l4 3V7L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/>
+        </svg>
+        <div class="notice-body">
+          <div class="notice-title">服务端公告</div>
+          <div class="notice-text" id="noticeText"></div>
+        </div>
+      </div>
+
+      <!-- ===== 网络 ===== -->
+      <section class="page active" id="page-lan">
+        <div class="address-card" id="addrCard">
+          <div class="addr-box" id="addrBox">
+            <span class="addr-value" id="addrValue">—</span>
+            <button class="btn btn-primary btn-sm" id="copyBtn" style="height:30px;padding:0 12px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <span id="copyText">复制</span>
+            </button>
+          </div>
+        </div>
+        <div class="address-card" id="placeholderCard">
+          <div class="addr-placeholder" id="placeholderText">未连接</div>
+        </div>
+        <div class="card">
+          <div class="card-head" style="padding-bottom:10px">
+            <div class="card-title" style="flex:1">运行日志</div>
+            <button class="btn btn-ghost btn-sm" id="clearLogsBtn">清空</button>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <div class="log-box" id="logBox" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 公网访问 ===== -->
+      <section class="page" id="page-forward">
+        <div class="card">
+          <div class="card-head" style="padding-bottom:13px">
+            <div style="flex:1"><div class="card-title">公网访问（隧道）</div></div>
+          </div>
+          <div class="rule-list" id="tunnelList"></div>
+        </div>
+      </section>
+
+      <!-- ===== 设置 ===== -->
+      <section class="page" id="page-settings">
+        <div class="card">
+          <div class="card-head" style="padding-bottom:13px"><div class="card-title">连接</div></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="form-row">
+              <label class="form-label" for="inServer">服务器地址</label>
+              <input class="input mono" id="inServer" placeholder="lan.sulink.ltd" spellcheck="false">
+              <div class="error-text" id="errServer" style="display:none"></div>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="inName">设备名</label>
+              <input class="input" id="inName" placeholder="我的电脑">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="padding-bottom:6px"><div class="card-title">高级</div></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="switch-row">
+              <div class="switch-text"><div class="form-label" style="margin-bottom:0">禁用 P2P 打洞</div></div>
+              <label class="switch"><input type="checkbox" id="swNoPunch"><span class="track"></span><span class="knob"></span></label>
+            </div>
+            <div class="switch-row">
+              <div class="switch-text"><div class="form-label" style="margin-bottom:0">开机自启</div></div>
+              <label class="switch"><input type="checkbox" id="swAutoStart"><span class="track"></span><span class="knob"></span></label>
+            </div>
+            <div class="switch-row">
+              <div class="switch-text"><div class="form-label" style="margin-bottom:0">启动后自动连接</div></div>
+              <label class="switch"><input type="checkbox" id="swAutoConnect"><span class="track"></span><span class="knob"></span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+
+/* ================= 桥接：调用 Go 后端 ================= */
+async function call(fn, ...args){
+  try{
+    const raw = await window[fn](...args);
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  }catch(e){
+    return {ok:false, error:String(e && e.message ? e.message : e)};
+  }
+}
+
+/* ================= 状态渲染 ================= */
+let lastStatus = '';
+let lastLogSig = '';
+let busy = false;
+const PAGES = {lan:'网络', forward:'公网访问', settings:'设置'};
+
+/* 虚拟网段已固定为 10.0.0.0/8（由客户端与服务端代码统一约定），
+   不再提供设置项——两端各配各的曾导致「已上线但 ping 不通」的疑难故障。 */
+
+function renderStatus(s){
+  const map = {
+    disconnected:{pill:'gray', dot:'gray', text:'未连接', btn:'连接', disabled:false},
+    connecting:  {pill:'brand', dot:'brand pulse', text:'正在连接…', btn:'取消', disabled:false},
+    connected:   {pill:'green', dot:'green', text:'已连接', btn:'断开', disabled:false},
+    error:       {pill:'red', dot:'red', text:'连接失败', btn:'重试', disabled:false}
+  };
+  const base = map[s.status] || map.disconnected;
+  let text = base.text;
+  if(s.status === 'connected'){
+    if(s.transport === 'direct') text = '已连接 · 直连';
+    else if(s.transport === 'relay') text = '已连接 · 中转';
+  }
+  $('#miniDot').className = 'dot ' + base.dot;
+  $('#miniText').textContent = text;
+
+  // 主按钮：连接中显示 spinner 且不可重复点击
+  const btn = $('#connBtn');
+  if(s.status === 'connecting' && busy){
+    btn.innerHTML = '<span class="spinner"></span>连接中…';
+    btn.disabled = true;
+  }else{
+    btn.textContent = base.btn;
+    btn.disabled = base.disabled;
+  }
+
+  // 地址卡：仅在已连接且有 IP 时展示
+  const hasAddr = s.status === 'connected' && !!s.ip;
+  $('#addrCard').style.display = hasAddr ? 'block' : 'none';
+  $('#placeholderCard').style.display = hasAddr ? 'none' : 'block';
+  if(hasAddr){
+    // 只显示纯虚拟 IP。端口属于穿透规则，拼在 IP 后面会让人以为 IP 自带端口。
+    $('#addrValue').textContent = s.ip;
+  }else{
+    $('#placeholderText').textContent =
+      s.status === 'connecting' ? '正在建立连接…'
+      : s.status === 'error' ? (s.message || '连接失败')
+      : '未连接';
+  }
+}
+
+function renderLogs(logs){
+  const sig = (logs && logs.length ? logs[0] : '') + '|' + (logs ? logs.length : 0);
+  if(sig === lastLogSig) return;
+  lastLogSig = sig;
+  const box = $('#logBox');
+  const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 24;
+  box.innerHTML = '';
+  (logs || []).slice().reverse().forEach(line => {
+    const d = document.createElement('span');
+    d.className = 'log-line';
+    d.textContent = line;
+    box.appendChild(d);
+  });
+  if(atBottom) box.scrollTop = box.scrollHeight;
+}
+
+// 服务端公告（管理页下发）。无公告时隐藏整块，不留空白占位。
+function renderNotice(s){
+  const bar = $('#noticeBar');
+  const text = s.notice || '';
+  if(!text){
+    bar.hidden = true;
+    $('#noticeText').textContent = '';
+    return;
+  }
+  bar.hidden = false;
+  // 必须用 textContent 而不是 innerHTML：公告文本来自服务端管理页，
+  // 走 innerHTML 等于把「能改服务端配置的人」直接升级成「能在客户端执行任意脚本的人」。
+  $('#noticeText').textContent = text;
+}
+
+function renderTunnels(tunnels){
+  const list = $('#tunnelList');
+  list.innerHTML = '';
+  if(!tunnels || !tunnels.length){
+    const d = document.createElement('div');
+    d.className = 'empty-box';
+    d.textContent = '暂无公网访问隧道，请在服务端管理面板添加';
+    list.appendChild(d);
+    return;
+  }
+  tunnels.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'rule-row';
+
+    const av = document.createElement('div');
+    av.className = 'rule-avatar';
+    av.style.background = i % 2 ? '#7C6BE8' : '#0EA5A4';
+    av.textContent = t.mode === 'udp' ? 'UDP' : 'TCP';
+
+    const info = document.createElement('div');
+    info.className = 'rule-info';
+    const title = document.createElement('div');
+    title.className = 'rule-title';
+    title.textContent = ':' + t.port + ' → ' + t.target;
+    info.appendChild(title);
+    if(t.remark){
+      const desc = document.createElement('div');
+      desc.className = 'rule-desc';
+      desc.textContent = t.remark;
+      info.appendChild(desc);
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'rule-meta';
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (t.running ? 'green' : 'gray');
+    badge.textContent = t.running ? '运行中' : '未运行';
+    meta.appendChild(badge);
+
+    row.appendChild(av); row.appendChild(info); row.appendChild(meta);
+    list.appendChild(row);
+  });
+}
+
+function renderSettings(cfg, s){
+  if(document.activeElement !== $('#inServer')) $('#inServer').value = cfg.server || 'lan.sulink.ltd';
+  if(document.activeElement !== $('#inName')) $('#inName').value = cfg.name || '';
+  $('#swNoPunch').checked = !!cfg.no_punch;
+  $('#swAutoStart').checked = !!cfg.auto_start;
+  $('#swAutoConnect').checked = !!cfg.auto_connect;
+}
+
+/* 把租约到期时刻格式化成「2026-10-14（剩 31 天）」。 */
+
+let connectedNow = false;
+
+function apply(s){
+  connectedNow = s.status === 'connected';
+  const first = lastStatus === '';
+  lastStatus = s.status;
+  renderStatus(s);
+  renderLogs(s.logs);
+  renderNotice(s);
+  renderTunnels(s.tunnels);
+  renderSettings(s.config, s);
+  busy = !!s.busy;
+  if(first && s.config.auto_connect && s.status === 'disconnected'){
+    doConnect();
+  }
+}
+
+async function refresh(){
+  const s = await call('goGetState');
+  if(s && s.status) apply(s);
+}
+
+/* ================= 交互 ================= */
+function toast(msg, type){
+  const icons = {
+    success:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    warning:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    error:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>'
+  };
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = icons[type] + '<span class="toast-msg"></span>';
+  el.querySelector('.toast-msg').textContent = msg;
+  $('#toastWrap').appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .2s,transform .2s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(12px)';
+    setTimeout(() => el.remove(), 200);
+  }, 3200);
+}
+
+/* 页面切换 */
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const p = btn.dataset.page;
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    $('#page-' + p).classList.add('active');
+    $('#pageTitle').textContent = PAGES[p];
+  });
+});
+
+/* 连接 / 断开 */
+async function doConnect(){
+  const res = await call('goConnect');
+  if(!res.ok){
+    toast(res.error || '连接失败', 'error');
+    refresh();
+    return;
+  }
+  busy = true;
+  refresh();
+}
+$('#connBtn').addEventListener('click', async () => {
+  if(lastStatus === 'connected'){
+    await call('goDisconnect');
+    toast('已断开连接', 'warning');
+  }else if(lastStatus === 'connecting'){
+    await call('goDisconnect');
+  }else{
+    await doConnect();
+  }
+  refresh();
+});
+
+/* 复制地址 */
+$('#copyBtn').addEventListener('click', async () => {
+  const text = $('#addrValue').textContent;
+  if(!text || text === '—') return;
+  await call('goCopyText', text);
+  const t = $('#copyText');
+  t.textContent = '已复制';
+  $('#copyBtn').style.background = 'var(--success)';
+  setTimeout(() => { t.textContent = '复制'; $('#copyBtn').style.background = ''; }, 1500);
+  toast('地址已复制', 'success');
+});
+
+/* 清空日志 */
+$('#clearLogsBtn').addEventListener('click', async () => {
+  await call('goClearLogs');
+  lastLogSig = '';
+  refresh();
+});
+
+
+/* 设置：字段失焦保存 */
+async function saveConfig(){
+  const payload = {
+    server: $('#inServer').value.trim() || 'lan.sulink.ltd',
+    name: $('#inName').value.trim(),
+    no_punch: $('#swNoPunch').checked,
+    auto_connect: $('#swAutoConnect').checked,
+    auto_start: $('#swAutoStart').checked
+  };
+  const res = await call('goSaveConfig', JSON.stringify(payload));
+  $('#errServer').style.display = 'none';
+  $('#inServer').classList.remove('error');
+  if(!res.ok){
+    toast(res.error || '保存失败', 'error');
+    // 设置页唯一的可校验字段是服务器地址，错误统一归属到它
+    $('#errServer').textContent = res.error || '';
+    $('#errServer').style.display = 'flex';
+    $('#inServer').classList.add('error');
+    return false;
+  }
+  return true;
+}
+
+['#inServer', '#inName'].forEach(sel => {
+  $(sel).addEventListener('blur', saveConfig);
+});
+
+/* 开关 */
+$('#swNoPunch').addEventListener('change', saveConfig);
+$('#swAutoConnect').addEventListener('change', saveConfig);
+$('#swAutoStart').addEventListener('change', async () => {
+  const on = $('#swAutoStart').checked;
+  const res = await call('goSetAutoStart', on);
+  if(!res.ok){
+    toast(res.error || '设置失败', 'error');
+    $('#swAutoStart').checked = !on;
+    return;
+  }
+  toast(on ? '已开启开机自启' : '已关闭开机自启', 'success');
+});
+
+/* 启动 */
+refresh();
+setInterval(refresh, 800);
+</script>
+</body>
+</html>

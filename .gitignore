@@ -1,0 +1,24 @@
+# 编译产物
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# 客户端编译输出
+test-client.exe
+sulink-lan-client.exe
+
+# NPS 数据（含真实设备信息）
+nps-data/
+
+# IDE 和系统文件
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log

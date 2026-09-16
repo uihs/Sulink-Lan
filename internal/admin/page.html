@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sulink Lan 管理台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230EA5A4'/%3E%3Cpath d='M12 20l8-8M11 11a5 5 0 0 0 0 7l2 2M21 21a5 5 0 0 0 0-7l-2-2' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* 字号只用四档：12 / 13 / 14 / 22；字重只用 400 / 500。
+   Microsoft YaHei 在 600 字重下笔画会糊在一起，尤其是 13px 的中文标签。 */
+:root{
+  --brand:#0EA5A4; --brand-dark:#0B8180; --brand-press:#096E6D;
+  --brand-light:#E6F7F7; --brand-subtle:#F3FBFB;
+  --success:#16A34A; --success-dark:#15803D;
+  --warning:#F59E0B; --warning-dark:#B45309;
+  --danger:#DC2626; --danger-dark:#B91C1C;
+  --bg-page:#F7F9FA; --bg-card:#FFFFFF; --bg-hover:#F1F5F5; --bg-code:#F4F7F8;
+  --border:#E5E9EB; --border-strong:#CFD6D9;
+  --text:#1A2226; --text-sub:#5A676D; --text-weak:#8B979D;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+  --sh-xs:0 1px 2px rgba(16,24,32,.04);
+  --sh-sm:0 2px 8px rgba(16,24,32,.06);
+  --sh-md:0 8px 24px rgba(16,24,32,.10);
+  --sh-focus:0 0 0 3px rgba(14,165,164,.18);
+  --font-ui:"Microsoft YaHei UI","Segoe UI","PingFang SC","Noto Sans CJK SC",sans-serif;
+  --font-mono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --topbar-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-ui);background:var(--bg-page);color:var(--text);font-size:13px;line-height:20px;-webkit-font-smoothing:antialiased}
+a{color:var(--brand-dark)}
+
+/* ===== 顶栏 ===== */
+.topbar{height:var(--topbar-h);display:flex;align-items:center;gap:12px;padding:0 20px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--brand),#22C9C6);display:flex;align-items:center;justify-content:center;flex:none}
+.brand-name{font-size:14px;font-weight:500;letter-spacing:-.2px}
+.brand-sub{font-size:12px;color:var(--text-weak);padding-left:8px;border-left:1px solid var(--border);margin-left:2px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--r-full);font-size:12px;font-weight:500;white-space:nowrap}
+.pill.gray{background:rgba(139,151,157,.12);color:#4A565B}
+.pill.green{background:rgba(22,163,74,.12);color:var(--success-dark)}
+.pill.red{background:rgba(220,38,38,.12);color:var(--danger-dark)}
+.pill.amber{background:rgba(245,158,11,.14);color:var(--warning-dark)}
+.dot{width:7px;height:7px;border-radius:var(--r-full);flex:none}
+.dot.green{background:var(--success)} .dot.red{background:var(--danger)}
+.dot.gray{background:var(--text-weak)} .dot.amber{background:var(--warning)}
+/* 连接中时让圆点呼吸一下：静态黄点容易被当成「正常」而忽略 */
+.dot.amber{animation:breathe 1.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.dot.amber{animation:none}}
+
+/* ===== 按钮 ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--r-md);
+  border:1px solid var(--border-strong);background:#fff;color:var(--text);font-family:inherit;font-size:13px;font-weight:400;
+  cursor:pointer;transition:background .12s,border-color .12s,color .12s;white-space:nowrap}
+.btn:hover{background:var(--bg-hover)}
+.btn:focus-visible{outline:none;box-shadow:var(--sh-focus)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:500}
+.btn.primary:hover{background:var(--brand-dark);border-color:var(--brand-dark)}
+.btn.primary:active{background:var(--brand-press)}
+.btn.sm{height:26px;padding:0 9px;font-size:12px;border-radius:var(--r-sm)}
+/* 危险操作不做实心按钮：它总是紧挨着安全按钮，实心红太容易被误点。
+   描边 + 悬停着色，既能被找到，又不会主动招人点。 */
+.btn.danger{color:var(--danger);border-color:rgba(220,38,38,.3);background:transparent}
+.btn.danger:hover{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.5)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--text-sub)}
+.btn.ghost:hover{background:var(--bg-hover);color:var(--text)}
+.btn.ghost.danger{color:var(--danger)}
+.btn.ghost.danger:hover{background:rgba(220,38,38,.08)}
+
+/* ===== 布局骨架 ===== */
+.wrap{max-width:1280px;margin:0 auto;padding:20px}
+.shell{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:16px}
+@media(min-width:1120px){.shell{grid-template-columns:minmax(0,1fr) 340px}}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-xs)}
+.card-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:500}
+.card-hd .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.card-bd{padding:14px 16px}
+
+/* ===== 概览条 ===== */
+.overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 15px;box-shadow:var(--sh-xs)}
+.stat .k{font-size:12px;color:var(--text-sub);display:flex;align-items:center;gap:5px}
+.stat .v{font-size:22px;font-weight:500;line-height:30px;margin-top:4px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.stat .u{font-size:12px;color:var(--text-weak);font-weight:400;margin-left:2px}
+.stat.lead{border-color:rgba(14,165,164,.35);background:linear-gradient(180deg,var(--brand-subtle),#fff)}
+.stat.lead .v{color:var(--brand-dark)}
+
+/* ===== 标签页 ===== */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto}
+.tab{position:relative;padding:11px 14px;font-size:13px;color:var(--text-sub);background:none;border:none;
+  font-family:inherit;cursor:pointer;white-space:nowrap;border-radius:var(--r-sm) var(--r-sm) 0 0}
+.tab:hover{color:var(--text);background:var(--bg-hover)}
+.tab:focus-visible{outline:none;box-shadow:inset var(--sh-focus)}
+.tab[aria-selected="true"]{color:var(--brand-dark);font-weight:500}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--brand);border-radius:2px 2px 0 0}
+.tab .cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:var(--r-full);
+  background:var(--bg-hover);color:var(--text-sub);font-size:11px;font-weight:400;text-align:center;line-height:16px;vertical-align:1px}
+.tab[aria-selected="true"] .cnt{background:var(--brand-light);color:var(--brand-dark)}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ===== 表格 ===== */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;font-weight:500;color:var(--text-sub);padding:8px 12px;background:var(--bg-page);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--brand-subtle)}
+td.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--font-mono);font-size:12px}
+.muted{color:var(--text-weak)}
+.sub{font-size:11px;color:var(--text-weak);margin-top:2px}
+.empty{padding:30px 16px;text-align:center;color:var(--text-weak);font-size:13px}
+.empty .et{font-weight:500;color:var(--text-sub);margin-bottom:4px}
+
+/* ===== 表单 ===== */
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+label.lb{display:block;font-size:12px;font-weight:500;color:var(--text-sub);margin-bottom:5px}
+.hint{font-size:12px;color:var(--text-weak);margin-top:5px;line-height:18px}
+input[type=text],input[type=password],input[type=number],textarea,select{
+  width:100%;padding:7px 10px;border:1px solid var(--border-strong);border-radius:var(--r-md);
+  font-family:inherit;font-size:13px;color:var(--text);background:#fff;transition:border-color .12s,box-shadow .12s}
+textarea{resize:vertical;min-height:66px;line-height:19px}
+textarea.mono{font-family:var(--font-mono);font-size:12px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:var(--sh-focus)}
+input::placeholder,textarea::placeholder{color:var(--text-weak)}
+/* 正在编辑的单元格：左侧竖条提示「此刻刷新不会覆盖你」
+   （renderLeases 在编辑期间暂停重绘，这里把这件事可视化出来） */
+tr.editing{background:var(--brand-subtle)}
+tr.editing td:first-child{box-shadow:inset 3px 0 0 var(--brand)}
+.ipin{width:118px;padding:5px 8px;border:1px solid var(--border-strong);border-radius:var(--r-sm);
+  font-family:var(--font-mono);font-size:12px;color:var(--text);background:#fff}
+.ipin:focus{outline:none;border-color:var(--brand);box-shadow:var(--sh-focus)}
+.cellrow{display:flex;gap:6px;align-items:center}
+.rowbtns{display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.check{display:flex;align-items:flex-start;gap:8px;cursor:pointer;user-select:none}
+.check input{width:15px;height:15px;margin-top:3px;accent-color:var(--brand);flex:none;cursor:pointer}
+.check .t{font-size:13px}
+
+/* ===== 键值列表 ===== */
+.kv{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.kv:last-child{border-bottom:none}
+.kv .kk{width:92px;flex:none;color:var(--text-sub);font-size:12px}
+.kv .vv{font-family:var(--font-mono);font-size:12px;word-break:break-all;white-space:pre-wrap}
+
+/* ===== 复制按钮 ===== */
+.copy{border:none;background:none;color:var(--text-weak);font-family:inherit;font-size:11px;
+  padding:2px 5px;border-radius:4px;cursor:pointer;vertical-align:1px}
+.copy:hover{background:var(--bg-hover);color:var(--brand-dark)}
+.copy:focus-visible{outline:none;box-shadow:var(--sh-focus)}
+
+/* ===== 登录闸门 ===== */
+.gate{position:fixed;inset:0;background:var(--bg-page);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+.gate-card{width:100%;max-width:380px;background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-md);padding:24px}
+.gate-mark{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--brand),#22C9C6);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.gate h1{font-size:17px;font-weight:500;margin-bottom:6px}
+.gate p{font-size:12px;color:var(--text-sub);margin-bottom:16px;line-height:19px}
+.err{font-size:12px;color:var(--danger-dark);background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);
+  border-radius:var(--r-md);padding:8px 10px;margin-bottom:11px;display:none;line-height:18px}
+.err.on{display:block}
+.tok-wrap{position:relative;display:flex}
+.tok-wrap input{padding-right:54px}
+.tok-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:none;background:none;
+  color:var(--brand-dark);font-family:inherit;font-size:12px;padding:4px 8px;border-radius:var(--r-sm);cursor:pointer}
+.tok-eye:hover{background:var(--brand-light)}
+.tok-eye:focus-visible{outline:none;box-shadow:var(--sh-focus)}
+.gate .hint code{background:var(--bg-code);padding:1px 5px;border-radius:4px;font-family:var(--font-mono);font-size:11px}
+
+/* ===== 连接横幅 ===== */
+/* 轮询断了不能只是顶栏换个颜色：页面上的数字会保持上一次的值，
+   看起来跟「数据没变」一模一样。用横幅 + 数据区褪色把「这是旧数据」说清楚。 */
+.banner{display:flex;align-items:center;gap:9px;margin-top:16px;padding:10px 14px;border-radius:var(--r-lg);
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.32);color:var(--warning-dark);font-size:12px}
+.banner .spinner{width:13px;height:13px;border:2px solid rgba(180,83,9,.25);border-top-color:var(--warning-dark);
+  border-radius:50%;flex:none;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.banner .spinner{animation:none}}
+body.stale .staleable{opacity:.45;transition:opacity .2s}
+
+/* ===== 提示条 ===== */
+#toast{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:200;align-items:flex-end}
+.toast{background:#1F2A30;color:#fff;font-size:13px;padding:10px 14px;border-radius:var(--r-md);box-shadow:var(--sh-md);
+  animation:slidein .18s ease-out;max-width:360px;line-height:19px}
+.toast.ok{background:var(--success-dark)} .toast.bad{background:var(--danger-dark)} .toast.warn{background:var(--warning-dark)}
+@keyframes slidein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ============ 登录闸门 ============ -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-mark">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+        <path d="M9 15l6-6M8 8a4 4 0 0 0 0 5.7l1.4 1.4M16 16a4 4 0 0 0 0-5.7L14.6 9"/>
+      </svg>
+    </div>
+    <h1>Sulink Lan 管理台</h1>
+    <p>请输入服务端启动时日志里打印的管理令牌。<br>令牌只保存在本标签页的会话存储中，关闭即失效。</p>
+    <div class="err" id="gateErr"></div>
+    <div class="field">
+      <label class="lb" for="tok">管理令牌</label>
+      <div class="tok-wrap">
+        <input type="password" id="tok" placeholder="粘贴令牌后回车" autocomplete="off" spellcheck="false">
+        <button type="button" class="tok-eye" id="tokEye">显示</button>
+      </div>
+      <div class="hint">
+        令牌在服务端启动日志里 <code>[server] 管理令牌…</code> 那一行。<br>
+        服务端<strong>每次重启都会换一个令牌</strong>，请以最新一次启动的日志为准。
+      </div>
+    </div>
+    <button class="btn primary" id="gateBtn" style="width:100%;height:36px">进入管理台</button>
+  </div>
+</div>
+
+<!-- ============ 主界面 ============ -->
+<div id="app" class="hide">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round">
+          <path d="M9 15l6-6M8 8a4 4 0 0 0 0 5.7l1.4 1.4M16 16a4 4 0 0 0 0-5.7L14.6 9"/>
+        </svg>
+      </div>
+      <span class="brand-name">Sulink Lan</span>
+      <span class="brand-sub">服务端管理台</span>
+    </div>
+    <div class="topbar-right">
+      <span class="pill gray" id="connPill"><span class="dot gray"></span><span id="connText">连接中…</span></span>
+      <button class="btn sm" id="refreshBtn">刷新</button>
+      <button class="btn sm" id="logoutBtn">退出</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- 断连横幅：仅在轮询失败时出现 -->
+    <div class="banner hide" id="staleBanner">
+      <span class="spinner"></span>
+      <span>与服务器的连接已断开，正在自动重试。下方数据是<b>最后一次成功获取的结果</b>，可能已经过期。</span>
+    </div>
+
+    <!-- 概览条：先给结论，再给细节 -->
+    <div class="overview" style="margin-top:16px">
+      <div class="stat lead">
+        <div class="k">在线设备</div>
+        <div class="v" id="mDevices">–</div>
+      </div>
+      <div class="stat">
+        <div class="k">中继流量</div>
+        <div class="v" id="mBytes">–</div>
+      </div>
+      <div class="stat">
+        <div class="k">公网隧道</div>
+        <div class="v" id="mTunnels">–</div>
+      </div>
+      <div class="stat">
+        <div class="k">运行时长</div>
+        <div class="v" id="mUptime" style="font-size:17px;line-height:30px">–</div>
+      </div>
+    </div>
+
+    <div class="shell">
+      <!-- ============ 主区：标签页 ============ -->
+      <div class="card staleable" style="overflow:hidden">
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-devices" aria-controls="panel-devices" aria-selected="true" data-tab="devices">
+            设备<span class="cnt" id="tabCntDevices"></span>
+          </button>
+          <button class="tab" role="tab" id="tab-public" aria-controls="panel-public" aria-selected="false" tabindex="-1" data-tab="public">
+            公网访问<span class="cnt" id="tabCntTunnels"></span>
+          </button>
+          <button class="tab" role="tab" id="tab-server" aria-controls="panel-server" aria-selected="false" tabindex="-1" data-tab="server">
+            服务器
+          </button>
+        </div>
+
+        <!-- --- 设备 --- -->
+        <div class="panel on" role="tabpanel" id="panel-devices" aria-labelledby="tab-devices">
+          <div id="leaseBox"></div>
+          <div class="card-bd" style="border-top:1px solid var(--border);padding-top:11px;padding-bottom:11px">
+            <div class="hint" id="leaseHint" style="margin-top:0"></div>
+          </div>
+        </div>
+
+        <!-- --- 公网访问 --- -->
+        <div class="panel" role="tabpanel" id="panel-public" aria-labelledby="tab-public" hidden>
+          <div class="card-bd">
+            <div class="hint" style="margin-top:0;margin-bottom:14px">
+              npc 客户端连上服务器后，就能把你本机的端口暴露到公网。先在下面的「npc 客户端」里拿一个 vkey，
+              再在那台机器上用这个 vkey 启动 npc。
+            </div>
+
+            <h4 style="font-size:12px;font-weight:500;color:var(--text-sub);margin-bottom:7px">npc 客户端</h4>
+            <div id="npsClients"></div>
+            <div style="display:flex;gap:8px;margin:10px 0 20px">
+              <input id="npsNewRemark" placeholder="新客户端备注（如：公司-办公室）" style="flex:1">
+              <button class="btn" id="npsAddClient" style="flex:none">新增客户端</button>
+            </div>
+
+            <h4 style="font-size:12px;font-weight:500;color:var(--text-sub);margin-bottom:7px">隧道（端口转发）</h4>
+            <div id="npsTunnels"></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px">
+              <select id="npsTunnelClient"><option value="">选择客户端</option></select>
+              <select id="npsTunnelMode">
+                <option value="all">ALL（TCP+UDP）</option>
+                <option value="tcp">TCP</option>
+                <option value="udp">UDP</option>
+              </select>
+              <input id="npsTunnelPort" placeholder="公网端口（0 = 自动）" type="number">
+              <input id="npsTunnelTarget" placeholder="目标 host:port">
+              <button class="btn primary" id="npsAddTunnel">新增隧道</button>
+            </div>
+            <div class="hint">目标地址填 npc 那台机器能访问到的地址，例如 <code>127.0.0.1:8080</code> 或 <code>192.168.1.10:80</code>。</div>
+          </div>
+        </div>
+
+        <!-- --- 服务器 --- -->
+        <div class="panel" role="tabpanel" id="panel-server" aria-labelledby="tab-server" hidden>
+          <div class="card-bd" id="srvBox"></div>
+          <div class="card-bd" style="border-top:1px solid var(--border)">
+            <h4 style="font-size:12px;font-weight:500;color:var(--text-sub);margin-bottom:8px">中继统计</h4>
+            <div id="statsBox"></div>
+            <div class="hint" style="margin-top:9px">
+              「丢弃伪造包」在正常运行时应长期保持很小；若持续增长，说明有人在向中继端口发送伪造来源的报文。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 策略侧栏：全局下发，一项一卡 ============ -->
+      <div>
+        <!-- 公告 -->
+        <div class="card staleable">
+          <div class="card-hd"><span class="card-title">公告</span></div>
+          <div class="card-bd">
+            <div class="field">
+              <label class="lb" for="notice">公告内容</label>
+              <textarea id="notice" placeholder="下发给所有在线设备，客户端会以横幅展示。"></textarea>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn primary" id="noticeSave" style="flex:1">发布公告</button>
+              <button class="btn ghost danger" id="noticeDel" style="flex:none">删除</button>
+            </div>
+            <div class="hint">
+              公告保存在服务端，重启后依然有效，新上线的设备也会自动收到。
+            </div>
+          </div>
+        </div>
+
+        <!-- P2P 打洞：全局开关 -->
+        <div class="card staleable" style="margin-top:16px">
+          <div class="card-hd"><span class="card-title">P2P 打洞</span></div>
+          <div class="card-bd">
+            <label class="check" for="nopunch">
+              <input type="checkbox" id="nopunch">
+              <span class="t">禁止 P2P 打洞（强制走服务器中转）
+                <div class="hint">勾选后所有客户端立即切换为纯中转；适用于排查直连异常或统一管控出口。取消勾选即恢复。</div>
+              </span>
+            </label>
+            <button class="btn primary" id="nopunchSave" style="width:100%;margin-top:12px">应用</button>
+          </div>
+        </div>
+
+        <!-- 当前生效 -->
+        <div class="card staleable" style="margin-top:16px">
+          <div class="card-hd"><span class="card-title">当前生效的全局配置</span></div>
+          <div class="card-bd" id="pushedBox"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const TOKEN_KEY = 'sulink.admin.token';
+let token = sessionStorage.getItem(TOKEN_KEY) || '';
+let timer = null;
+
+function toast(msg, kind) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind ? ' ' + kind : '');
+  el.textContent = msg;
+  $('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3600);
+}
+
+function fmtBytes(n) {
+  n = Number(n) || 0;
+  if (n < 1024) return n + ' B';
+  const u = ['KB', 'MB', 'GB', 'TB'];
+  let i = -1;
+  do { n /= 1024; i++; } while (n >= 1024 && i < u.length - 1);
+  return n.toFixed(n >= 100 ? 0 : 1) + ' ' + u[i];
+}
+
+// fmtBytesHTML 把「数值」和「单位」分开包一层，单位用小字，
+// 于是概览条上的大数字不会因为单位长短不同而忽宽忽窄。
+function fmtBytesHTML(n) {
+  const s = fmtBytes(n);
+  const i = s.lastIndexOf(' ');
+  if (i < 0) return esc(s);
+  return esc(s.slice(0, i)) + '<span class="u">' + esc(s.slice(i + 1)) + '</span>';
+}
+
+function fmtDur(s) {
+  s = Math.max(0, Math.floor(Number(s) || 0));
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600),
+        m = Math.floor(s % 3600 / 60), sec = s % 60;
+  if (d) return d + ' 天 ' + h + ' 小时';
+  if (h) return h + ' 小时 ' + m + ' 分';
+  if (m) return m + ' 分 ' + sec + ' 秒';
+  return sec + ' 秒';
+}
+
+// fmtDurShort 给概览条用：大数字旁边塞「3 天 4 小时」会撑破卡片，
+// 这里只保留最高一级。
+function fmtDurShort(s) {
+  s = Math.max(0, Math.floor(Number(s) || 0));
+  const d = Math.floor(s / 86400);
+  if (d) return d + ' 天';
+  const h = Math.floor(s % 86400 / 3600);
+  if (h) return h + ' 小时';
+  const m = Math.floor(s % 3600 / 60);
+  if (m) return m + ' 分';
+  return s + ' 秒';
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function api(path, opts) {
+  const o = opts || {};
+  o.headers = Object.assign({ 'X-Admin-Token': token }, o.headers || {});
+  if (o.body) o.headers['Content-Type'] = 'application/json';
+  const res = await fetch(path, o);
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* 非 JSON 响应 */ }
+  if (res.status === 401) { showGate('令牌已失效，请重新输入（服务端重启后会换新令牌）。'); throw new Error('unauthorized'); }
+  if (!res.ok) throw new Error((data && data.error) || ('请求失败 HTTP ' + res.status));
+  return data;
+}
+
+function showGateErr(msg) {
+  $('gateErr').textContent = msg;
+  $('gateErr').classList.add('on');
+}
+
+function hideGateErr() { $('gateErr').classList.remove('on'); }
+
+function showGate(msg) {
+  token = '';
+  sessionStorage.removeItem(TOKEN_KEY);
+  $('app').classList.add('hide');
+  $('gate').classList.remove('hide');
+  if (msg) showGateErr(msg); else hideGateErr();
+  $('tok').focus();
+  if (timer) { clearInterval(timer); timer = null; }
+}
+
+// setConn 同时管顶栏那个 pill 和页面顶部的断连横幅。
+//
+// 三态而不是两态：gray=还没连上、green=正常、amber=曾经连上过但现在断了。
+// 「正在重试」和「从未连上」是两回事，前者页面里有旧数据要提醒，
+// 后者没有。
+//
+// 改 className / textContent 而不是重写 innerHTML：整段重建会把
+// <span id="connText"> 一起换掉，那个 id 从此在文档里消失，
+// 之后任何按 id 取它的代码（包括调试）都拿不到。
+function setConn(state, text) {
+  const tone = state === true ? 'green' : (state === 'retry' ? 'amber' : (state === false ? 'red' : 'gray'));
+  const pill = $('connPill');
+  pill.className = 'pill ' + tone;
+  const dot = pill.querySelector('.dot');
+  if (dot) dot.className = 'dot ' + tone;
+  $('connText').textContent = text;
+  const stale = state === 'retry';
+  $('staleBanner').classList.toggle('hide', !stale);
+  document.body.classList.toggle('stale', stale);
+}
+
+// 每张卡片各自一个「正在提交」标志：提交期间暂停回填该卡片，
+// 否则 3 秒一次的自动刷新会在请求返回之前把管理员刚点的开关拨回去，
+// 看起来就像「点了没生效」。
+let busyNotice = false, busyNoPunch = false;
+
+async function refresh() {
+  let data;
+  try {
+    data = await api('/api/state');
+  } catch (e) {
+    if (e.message !== 'unauthorized') setConn('retry', '连接中断，重试中');
+    return;
+  }
+  const s = data.state || {};
+  setConn(true, '已连接');
+  $('mDevices').textContent = (s.devices || []).length;
+  $('mUptime').textContent = fmtDurShort(s.uptimeSecs);
+  const st = s.stats || {};
+  $('mBytes').innerHTML = fmtBytesHTML(st.bytesRelayed);
+
+  const leases = s.leases || [];
+  leasesCache = leases;
+  renderLeases(leases, s.devices || []);
+  renderServer(s, st);
+  renderPushed(s.pushed || {});
+  loadNps();
+
+  // 回填表单（用户正在输入时不覆盖）
+  if (!busyNotice && document.activeElement !== $('notice')) {
+    $('notice').value = (s.pushed && s.pushed.notice) || '';
+  }
+  if (!busyNoPunch) $('nopunch').checked = !!(s.pushed && s.pushed.no_punch);
+}
+
+// ===== 设备表 =====
+//
+// 「在线设备」和「设备与 IP 租约」原本是两张表，但它们是同一批设备的两个
+// 视图——同一台设备会在页面上出现两次，管理员还得自己在脑子里 join。
+// 合并成一张：实时状态（在线时长 / UDP 地址）和分配状态（虚拟地址 / 租约
+// 剩余 / 凭证）各占几列，一台设备只出现一次。
+//
+// leaseHTML 缓存上一次生成的表格：整表每 3 秒重建一次会把管理员正在
+// 输入的地址框连内容一起清掉。内容没变就不重绘，是最省事也最稳的做法。
+let leasesCache = [];
+let leaseHTML = '';
+let leaseEditing = false;
+
+function fmtLease(secs) {
+  secs = Math.floor(Number(secs) || 0);
+  if (secs <= 0) return '已到期';
+  const d = Math.floor(secs / 86400);
+  if (d >= 1) return d + ' 天';
+  const h = Math.floor(secs / 3600);
+  if (h >= 1) return h + ' 小时';
+  const m = Math.floor(secs / 60);
+  return m >= 1 ? m + ' 分' : secs + ' 秒';
+}
+
+function renderLeases(list, devices) {
+  const devMap = {};
+  (devices || []).forEach((d) => { devMap[d.vip] = d; });
+  $('tabCntDevices').textContent = list.length || '';
+  $('leaseHint').textContent =
+    '地址按设备标识（HWID）绑定，租约 31 天：设备每月至少上线一次，地址就一直是它的；' +
+    '连续一个月未上线才会被回收。改地址后在线设备会被断开，并在数秒内自动重连启用新地址。';
+
+  const rows = list.map((d) => {
+    const dev = devMap[d.vip];
+    const online = d.online || !!dev;
+    const st = online
+      ? '<span class="pill green">在线</span>'
+      : '<span class="pill gray">离线</span>';
+    const up = dev ? fmtDur(dev.onlineSecs) : '—';
+    const addr = dev && dev.udpAddr ? dev.udpAddr : '—';
+    const exp = d.expireAt ? fmtLease(d.remainSecs) : '—';
+    let cred;
+    if (d.blocked) {
+      cred = '<span class="pill red">已封禁</span><button class="btn sm" data-unblock="' + esc(d.hwid) + '" title="解除后设备可重新注册并恢复原地址">解除封禁</button>';
+    } else if (d.registered) {
+      cred = '<span class="pill green">已注册</span><button class="btn sm danger" data-revcred="' + esc(d.hwid) + '" title="清除凭证并封禁该设备，设备将无法再入网">封禁设备</button>';
+    } else {
+      cred = '<span class="muted">—</span>';
+    }
+    return '<tr data-hwid="' + esc(d.hwid) + '">' +
+      '<td><strong>' + (esc(d.name) || '（未命名）') + '</strong>' +
+        '<div class="sub mono" title="' + esc(d.hwid) + '">' + esc(String(d.hwid).slice(0, 8)) + '</div></td>' +
+      '<td><div class="cellrow">' +
+        '<input class="ipin" data-ip="' + esc(d.hwid) + '" data-orig="' + esc(d.vip) + '"' +
+        ' value="' + esc(d.vip) + '" placeholder="未分配"' +
+        ' spellcheck="false" autocomplete="off">' +
+        '<button class="btn sm" data-setip="' + esc(d.hwid) + '">应用</button>' +
+      '</div></td>' +
+      '<td>' + st + '</td>' +
+      '<td class="muted num">' + esc(up) + '</td>' +
+      '<td class="muted num">' + esc(exp) + '</td>' +
+      '<td><div class="rowbtns">' + cred + '</div></td>' +
+    '</tr>';
+  }).join('');
+
+  const html = list.length
+    ? '<table><thead><tr><th>设备</th><th>虚拟地址</th><th>状态</th><th>在线时长</th><th>租约剩余</th><th>凭证</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    : '<div class="empty"><div class="et">暂无设备记录</div>设备首次连接后会自动出现在这里。</div>';
+
+  // 编辑中不重绘：哪怕服务端数据变了，也不该在管理员打字打到一半时换掉输入框。
+  if (html === leaseHTML || leaseEditing) return;
+  leaseHTML = html;
+  $('leaseBox').innerHTML = html;
+}
+
+// renderServer 把「服务端基本信息」和「中继统计」拆开：
+// 前者是配置事实（基本不变），后者是运行时计数（一直在动）。
+// 原来和「在线设备数」平铺在一起，等于让诊断数据跟关键指标抢注意力。
+function renderServer(s, st) {
+  const items = [
+    ['服务器虚拟 IP', s.serverVip],
+    ['虚拟网段', s.vnet],
+    ['信令监听', s.tcpAddr],
+    ['中继监听', s.udpAddr],
+  ];
+  $('srvBox').innerHTML = items.map(([k, v]) =>
+    '<div class="kv"><div class="kk">' + esc(k) + '</div><div class="vv">' + (esc(v) || '—') + '</div></div>').join('');
+
+  const stats = [
+    ['中继转发', Number(st.pktsRelayed || 0).toLocaleString(), '个包'],
+    ['广播泛洪', Number(st.pktsFlooded || 0).toLocaleString(), '个包'],
+    ['ICMP 应答', Number(st.icmpReplies || 0).toLocaleString(), '个包'],
+    ['丢弃伪造包', Number(st.pktsRejected || 0).toLocaleString(), '个包'],
+  ];
+  $('statsBox').innerHTML = stats.map(([k, v, u]) =>
+    '<div class="kv"><div class="kk">' + esc(k) + '</div><div class="vv">' + esc(v) +
+    ' <span class="muted" style="font-family:var(--font-ui)">' + esc(u) + '</span></div></div>').join('');
+}
+
+const CFG_LABEL = { notice: '公告', no_punch: '禁止打洞' };
+
+// cfgVal 把内部取值翻成给人看的样子：no_punch 的 "1" 直接显示会让人
+// 以为是数量或编号，而它其实是个开关。
+function cfgVal(k, v) {
+  if (k === 'no_punch') return v ? '开启' : '未开启';
+  return v;
+}
+
+function renderPushed(cfg) {
+  const keys = Object.keys(cfg);
+  if (!keys.length) {
+    $('pushedBox').innerHTML =
+      '<div class="muted" style="font-size:12px">尚未下发任何全局配置，客户端按本地设置运行。</div>';
+    return;
+  }
+  $('pushedBox').innerHTML = keys.map((k) =>
+    '<div class="kv"><div class="kk">' + esc(CFG_LABEL[k] || k) + '</div><div class="vv">' +
+    esc(cfgVal(k, cfg[k])) + '</div></div>').join('');
+}
+
+// submit 统一的提交动作：禁用按钮 → POST → 提示 → 刷新。
+// 卡片的提交路径完全一样，抽出来避免多处各写一遍 try/finally。
+async function submit(btn, path, body, okMsg) {
+  btn.disabled = true;
+  try {
+    const r = await api(path, { method: 'POST', body: JSON.stringify(body) });
+    toast(okMsg(r), 'ok');
+    await refresh();
+  } catch (e) {
+    toast(e.message, 'bad');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ===== 标签页 =====
+const TABS = ['devices', 'public', 'server'];
+
+function selectTab(name) {
+  TABS.forEach((t) => {
+    const on = t === name;
+    const tab = $('tab-' + t), panel = $('panel-' + t);
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    panel.classList.toggle('on', on);
+    panel.hidden = !on;
+  });
+  // 记住选择：3 秒一次刷新不会重排 DOM，但重新登录后回到上次看的页更顺手
+  try { sessionStorage.setItem('sulink.admin.tab', name); } catch (e) { /* 隐私模式 */ }
+}
+
+TABS.forEach((t, i) => {
+  const tab = $('tab-' + t);
+  tab.addEventListener('click', () => selectTab(t));
+  // 左右方向键切线：键盘用户不必 Tab 穿过所有按钮再回到标签栏
+  tab.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+    ev.preventDefault();
+    const next = TABS[(i + (ev.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    selectTab(next);
+    $('tab-' + next).focus();
+  });
+});
+
+// ===== 租约表事件 =====
+// 输入框获得焦点时暂停重绘（见 renderLeases 的 leaseEditing），
+// 同时给整行加个标记，让「此刻不会被刷新打断」这件事看得见。
+$('leaseBox').addEventListener('focusin', (ev) => {
+  leaseEditing = true;
+  const tr = ev.target.closest('tr');
+  if (tr) tr.classList.add('editing');
+});
+$('leaseBox').addEventListener('focusout', (ev) => {
+  leaseEditing = false;
+  const tr = ev.target.closest('tr');
+  if (tr) tr.classList.remove('editing');
+});
+// 输入框里直接回车 = 点「应用」，省一次鼠标移动
+$('leaseBox').addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter' || !ev.target.classList.contains('ipin')) return;
+  ev.preventDefault();
+  const btn = ev.target.closest('td').querySelector('[data-setip]');
+  if (btn) btn.click();
+});
+
+// 事件委托：租约表会整表重绘，逐行绑监听会随刷新不断累积
+$('leaseBox').addEventListener('click', async (ev) => {
+  const rev = ev.target.closest('[data-revcred]');
+  if (rev) {
+    const hwid = rev.getAttribute('data-revcred');
+    if (!confirm('封禁该设备？\n\n它会被清除凭证并被拒绝注册，直到你手动解除封禁。该设备上的客户端会立刻掉线。')) return;
+    try {
+      await api('/api/revoke-cred', { method: 'POST', body: JSON.stringify({ hwid: hwid }) });
+      toast('已封禁设备', 'ok');
+      await refresh();
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+    return;
+  }
+  const unblock = ev.target.closest('[data-unblock]');
+  if (unblock) {
+    const hwid = unblock.getAttribute('data-unblock');
+    try {
+      await api('/api/unblock', { method: 'POST', body: JSON.stringify({ hwid: hwid }) });
+      toast('已解除封禁，设备可重新入网', 'ok');
+      await refresh();
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+    return;
+  }
+  const btn = ev.target.closest('[data-setip]');
+  if (!btn) return;
+  const hwid = btn.getAttribute('data-setip');
+  const inp = btn.closest('td').querySelector('input.ipin');
+  const row = btn.closest('tr');
+  // 设备名从行里读：toast 里只说「10.0.0.5」的话，管理员还得自己回去对照是哪台
+  const nameEl = row && row.querySelector('td strong');
+  const devName = nameEl ? nameEl.textContent : hwid.slice(0, 8);
+  const oldVip = inp.getAttribute('data-orig') || '';
+  const vip = (inp.value || '').trim();
+  if (!vip) {
+    toast('请输入要分配的虚拟地址，例如 10.0.0.5', 'bad');
+    inp.focus();
+    return;
+  }
+  // 先取值再发请求：请求期间表格可能被刷新重绘，重绘后按钮已不在文档里，
+  // 那时再去读 DOM 就什么都拿不到了。
+  btn.disabled = true;
+  try {
+    const r = await api('/api/ip', { method: 'POST', body: JSON.stringify({ hwid: hwid, vip: vip }) });
+    const arrow = oldVip && oldVip !== vip ? oldVip + ' → ' + vip : vip;
+    toast(r.reconnect
+      ? devName + '：地址已改为 ' + arrow + '，设备正在重连（数秒后在设备列表里可见新地址）'
+      : devName + '：地址已改为 ' + arrow + '（设备离线，下次上线生效）', 'ok');
+    leaseHTML = ''; // 强制重绘，避免缓存判定「内容没变」而跳过
+    await refresh();
+  } catch (e) {
+    toast(e.message, 'bad');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ===== 公告（独立卡片：发布 / 单独删除） =====
+$('noticeSave').addEventListener('click', () => {
+  const text = $('notice').value.trim();
+  if (!text) {
+    toast('公告内容为空。若要撤下公告，请点「删除」。', 'bad');
+    $('notice').focus();
+    return;
+  }
+  busyNotice = true;
+  submit($('noticeSave'), '/api/notice', { text: text },
+    (r) => '公告已下发给 ' + r.delivered + ' 台在线设备')
+    .finally(() => { busyNotice = false; });
+});
+
+$('noticeDel').addEventListener('click', () => {
+  if (!confirm('删除公告？\n\n所有在线设备上的公告横幅会立即消失。')) return;
+  busyNotice = true;
+  submit($('noticeDel'), '/api/notice', { text: '' },
+    (r) => '公告已删除，已通知 ' + r.delivered + ' 台在线设备')
+    .finally(() => { busyNotice = false; });
+});
+
+// ===== 禁止打洞（独立卡片） =====
+$('nopunchSave').addEventListener('click', () => {
+  const on = $('nopunch').checked;
+  busyNoPunch = true;
+  submit($('nopunchSave'), '/api/nopunch', { on: on },
+    (r) => (on ? '已禁止 P2P 打洞' : '已恢复 P2P 打洞') + '，通知 ' + r.delivered + ' 台在线设备')
+    .finally(() => { busyNoPunch = false; });
+});
+
+$('refreshBtn').addEventListener('click', refresh);
+$('logoutBtn').addEventListener('click', () => showGate(''));
+
+$('gateBtn').addEventListener('click', () => tryLogin(''));
+$('tok').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(''); });
+$('tok').addEventListener('input', hideGateErr);
+$('tokEye').addEventListener('click', () => {
+  const inp = $('tok');
+  const nowPlain = inp.type === 'password';
+  inp.type = nowPlain ? 'text' : 'password';
+  $('tokEye').textContent = nowPlain ? '隐藏' : '显示';
+});
+
+// copyText 复制到剪贴板。
+//
+// navigator.clipboard 只在安全上下文（https / localhost）可用，而管理页
+// 常常是 http 访问 192.168.x.x——那里它就是 undefined。所以留一条
+// execCommand 兜底，否则「复制」按钮在这类部署下会静默失效。
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* 落到下面的兜底 */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// cleanToken 清理粘贴进来的令牌。
+//
+// 从聊天工具 / 文档 / 终端复制令牌时，很容易带上肉眼看不见的东西：
+// 首尾空格、换行，以及零宽字符（U+200B~U+200D）、BOM（U+FEFF）、
+// 断词符（U+2060）、全角空格（U+3000）。
+// 它们让两串「看起来完全一样」的令牌比对失败——这是「令牌明明抄对了却说
+// 不正确」的头号原因，所以在这里统一剥掉，而不是让用户自己去猜。
+function cleanToken(s) {
+  return String(s == null ? '' : s)
+    .replace(/[\u200B-\u200D\uFEFF\u2060\u3000]/g, '')
+    .replace(/\s+/g, '');
+}
+
+// tryLogin 用 stored 传入「本标签页已保存的令牌」时跳过输入框校验；
+// 传空串表示走输入框（首次进入 / 手动重试）。
+async function tryLogin(stored) {
+  const raw = stored ? stored : $('tok').value;
+  const v = cleanToken(raw);
+  if (!v) { showGateErr('请输入令牌'); $('tok').focus(); return; }
+  token = v;
+  $('gateBtn').disabled = true;
+  try {
+    const res = await fetch('/api/state', { headers: { 'X-Admin-Token': token } });
+    if (res.status === 401) {
+      token = '';
+      sessionStorage.removeItem(TOKEN_KEY);
+      // 回填清洗后的值：用户能直接看到「实际发出去的到底是什么」，
+      // 不用对着密码框猜自己哪儿抄错了。
+      $('tok').value = v;
+      let msg = '令牌不正确。请核对服务端启动日志里「[server] 管理令牌…」那一行。';
+      if (stored) {
+        msg = '上次保存的令牌已失效（服务端重启后会换新令牌），请重新输入。';
+      } else if (raw !== v) {
+        msg += '（已自动去掉粘贴带入的空白或不可见字符，但仍不匹配）';
+      }
+      showGateErr(msg);
+      $('tok').focus();
+      $('tok').select();
+      return;
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    sessionStorage.setItem(TOKEN_KEY, token);
+    hideGateErr();
+    $('tok').value = '';
+    $('gate').classList.add('hide');
+    $('app').classList.remove('hide');
+    let t = 'devices';
+    try { t = sessionStorage.getItem('sulink.admin.tab') || 'devices'; } catch (e) { /* 忽略 */ }
+    if (TABS.indexOf(t) < 0) t = 'devices';
+    selectTab(t);
+    await refresh();
+    if (timer) clearInterval(timer);
+    timer = setInterval(refresh, 3000);
+  } catch (e) {
+    showGateErr('无法连接服务端：' + e.message);
+  } finally {
+    $('gateBtn').disabled = false;
+  }
+}
+
+// ===== NPS 管理 =====
+//
+// 这一段的数据全部来自服务端（vkey / remark / target 都是可被写入的字符串），
+// 一律走 esc()。原来这里是裸 innerHTML 插值，管理员填的备注里带个
+// <script> 就能在管理页里执行——而管理页手里正握着 admin token。
+let npsClientsCache = [];
+let npsTunnelsCache = [];
+async function loadNps() {
+  try {
+    const [c, t] = await Promise.all([
+      api('/api/nps/clients'),
+      api('/api/nps/tunnels'),
+    ]);
+    npsClientsCache = c.items || [];
+    npsTunnelsCache = t.items || [];
+    renderNpsClients(npsClientsCache);
+    renderNpsTunnels(npsTunnelsCache);
+  } catch (e) { /* NPS 未并入时静默：这块功能可能没启用 */ }
+}
+
+function renderNpsClients(list) {
+  const sel = $('npsTunnelClient');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">选择客户端</option>' + list.map((c) =>
+    '<option value="' + c.id + '">' + esc(c.remark || c.vkey) + '</option>').join('');
+  sel.value = prev;
+  $('tabCntTunnels').textContent = npsTunnelsCache.length || '';
+  if (!list.length) {
+    $('npsClients').innerHTML =
+      '<div class="empty"><div class="et">还没有 npc 客户端</div>先新增一个，再在那台机器上用生成的 vkey 启动 npc。</div>';
+    return;
+  }
+  $('npsClients').innerHTML = '<table><thead><tr>' +
+    '<th>备注</th><th>vkey</th><th>状态</th><th>来源地址</th><th></th></tr></thead><tbody>' +
+    list.map((c) => '<tr>' +
+      '<td>' + (esc(c.remark) || '<span class="muted">未命名</span>') + '<div class="sub">ID ' + c.id + '</div></td>' +
+      '<td class="mono">' + esc(c.vkey) +
+        '<button class="copy" data-copy="' + esc(c.vkey) + '" title="复制 vkey">复制</button></td>' +
+      '<td>' + (c.online ? '<span class="pill green">在线</span>' : '<span class="pill gray">离线</span>') + '</td>' +
+      '<td class="mono muted">' + (esc(c.addr) || '—') + '</td>' +
+      '<td><div class="rowbtns"><button class="btn sm danger" data-del-client="' + c.id + '">删除</button></div></td>' +
+    '</tr>').join('') + '</tbody></table>';
+}
+
+function renderNpsTunnels(list) {
+  if (!list.length) {
+    $('npsTunnels').innerHTML =
+      '<div class="empty"><div class="et">还没有隧道</div>选一个客户端，填公网端口和目标地址，例如 127.0.0.1:8080。</div>';
+    return;
+  }
+  const cliName = {};
+  npsClientsCache.forEach((c) => { cliName[c.id] = c.remark || c.vkey; });
+  $('npsTunnels').innerHTML = '<table><thead><tr>' +
+    '<th>公网端口</th><th>协议</th><th>目标</th><th>客户端</th><th>状态</th><th></th></tr></thead><tbody>' +
+    list.map((t) => '<tr>' +
+      '<td class="mono">' + esc(t.port) + '<div class="sub">ID ' + t.id + '</div></td>' +
+      '<td>' + esc(String(t.mode).toUpperCase()) + '</td>' +
+      '<td class="mono">' + esc(t.target) + '</td>' +
+      '<td>' + esc(cliName[t.clientId] || t.vkey) + '</td>' +
+      '<td>' + (t.running ? '<span class="pill green">运行中</span>' : '<span class="pill red">未运行</span>') + '</td>' +
+      '<td><div class="rowbtns"><button class="btn sm danger" data-del-tunnel="' + t.id + '">删除</button></div></td>' +
+    '</tr>').join('') + '</tbody></table>';
+}
+
+// 客户端 / 隧道的表格会整表重绘，同样用事件委托，避免监听器累积
+$('panel-public').addEventListener('click', async (ev) => {
+  const cp = ev.target.closest('[data-copy]');
+  if (cp) {
+    const ok = await copyText(cp.getAttribute('data-copy'));
+    toast(ok ? 'vkey 已复制到剪贴板' : '复制失败，请手动选中复制', ok ? 'ok' : 'bad');
+    return;
+  }
+  const dc = ev.target.closest('[data-del-client]');
+  if (dc) {
+    const id = Number(dc.getAttribute('data-del-client'));
+    const c = npsClientsCache.find((x) => x.id === id);
+    const name = c ? (c.remark || c.vkey) : ('ID ' + id);
+    if (!confirm('删除客户端「' + name + '」？\n\n它名下的所有隧道会一并停止，公网端口立即释放。')) return;
+    try {
+      await api('/api/nps/clients/delete', { method: 'POST', body: JSON.stringify({ id: id }) });
+      toast('已删除客户端「' + name + '」', 'ok');
+      loadNps();
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+    return;
+  }
+  const dt = ev.target.closest('[data-del-tunnel]');
+  if (dt) {
+    const id = Number(dt.getAttribute('data-del-tunnel'));
+    const t = npsTunnelsCache.find((x) => x.id === id);
+    const desc = t ? (t.mode.toUpperCase() + ' ' + t.port + ' → ' + t.target) : ('ID ' + id);
+    if (!confirm('删除隧道「' + desc + '」？\n\n公网端口会立即释放，从外部将无法再访问。')) return;
+    try {
+      await api('/api/nps/tunnels/delete', { method: 'POST', body: JSON.stringify({ id: id }) });
+      toast('已删除隧道「' + desc + '」', 'ok');
+      loadNps();
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+  }
+});
+
+$('npsAddClient').addEventListener('click', async () => {
+  const btn = $('npsAddClient');
+  btn.disabled = true;
+  try {
+    const r = await api('/api/nps/clients', { method: 'POST', body: JSON.stringify({
+      remark: $('npsNewRemark').value.trim(),
+    }) });
+    $('npsNewRemark').value = '';
+    toast('已创建客户端，vkey：' + r.vkey, 'ok');
+    loadNps();
+  } catch (e) {
+    toast(e.message, 'bad');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('npsAddTunnel').addEventListener('click', async () => {
+  const btn = $('npsAddTunnel');
+  const clientId = Number($('npsTunnelClient').value);
+  if (!clientId) { toast('请先选择客户端', 'bad'); $('npsTunnelClient').focus(); return; }
+  const target = $('npsTunnelTarget').value.trim();
+  if (!target) { toast('请填目标地址，例如 127.0.0.1:8080', 'bad'); $('npsTunnelTarget').focus(); return; }
+  const mode = $('npsTunnelMode').value;
+  btn.disabled = true;
+  try {
+    const r = await api('/api/nps/tunnels', { method: 'POST', body: JSON.stringify({
+      client_id: clientId,
+      port: Number($('npsTunnelPort').value) || 0,
+      mode: mode,
+      target: target,
+    }) });
+    toast(mode === 'all' ? '已创建 TCP+UDP 隧道，公网端口 ' + r.port : '已创建隧道，公网端口 ' + r.port, 'ok');
+    $('npsTunnelTarget').value = ''; $('npsTunnelPort').value = '';
+    loadNps();
+  } catch (e) {
+    toast(e.message, 'bad');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+if (token) {
+  tryLogin(token);
+} else {
+  showGate('');
+}
+</script>
+</body>
+</html>
