@@ -1,13 +1,13 @@
 module sulink-lan
 
-go 1.24.0
+go 1.25.0
 
 require (
 	ehang.io/nps v0.26.10
 	github.com/astaxie/beego v1.12.0
 	github.com/jchv/go-webview2 v0.0.0-20260205173254-56598839c808
-	golang.org/x/sys v0.32.0
-	golang.org/x/text v0.24.0
+	golang.org/x/sys v0.45.0
+	golang.org/x/text v0.37.0
 	golang.zx2c4.com/wireguard v0.0.0-20260522210424-ecfc5a8d5446
 )
 
@@ -33,8 +33,8 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/xtaci/kcp-go v5.4.20+incompatible // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

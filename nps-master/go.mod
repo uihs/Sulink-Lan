@@ -1,8 +1,6 @@
 module ehang.io/nps
 
-go 1.24.0
-
-toolchain go1.24.9
+go 1.25.0
 
 require (
 	fyne.io/fyne/v2 v2.2.0
@@ -18,7 +16,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/xtaci/kcp-go v5.4.20+incompatible
-	golang.org/x/net v0.23.0
+	golang.org/x/net v0.54.0
 	golang.org/x/time v0.14.0
 )
 
@@ -60,15 +58,15 @@ require (
 	github.com/tjfoc/gmsm v1.4.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/ulikunitz/xz v0.5.6 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	github.com/xtaci/lossyconn v0.0.0-20190602105132-8df528c0c9ae // indirect
 	github.com/yuin/goldmark v1.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd // indirect
+	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/image v0.41.0 // indirect
 	golang.org/x/mobile v0.0.0-20211207041440-4e6c2922fdee // indirect
-	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/js/dom v0.0.0-20210725211120-f030747120f2 // indirect
